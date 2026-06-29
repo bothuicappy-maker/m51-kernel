@@ -10,7 +10,8 @@ jobs:
     - name: Cài đặt công cụ
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc build-essential libncurses5-dev bison flex libssl-dev libelf-dev clang lld-llvm
+        # Đã sửa lỗi code 100: Thay đổi tên các gói cài đặt cho chuẩn Ubuntu mới
+        sudo apt-get install -y bc build-essential libncurses-dev bison flex libssl-dev libelf-dev clang lld llvm
 
     - name: Tải mã nguồn Kernel chuẩn từ ảnh của ní 🚀
       run: |
@@ -26,7 +27,7 @@ jobs:
         cd kernel-source
         curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
         
-        # Đã sửa sẵn: Kích hoạt KernelSU thẳng vào m51_defconfig
+        # Kích hoạt KernelSU thẳng vào m51_defconfig
         echo "CONFIG_KERNELSU=y" >> arch/arm64/configs/m51_defconfig
 
     - name: 🏗️ Tiến hành Biên dịch (Compile)
@@ -37,7 +38,7 @@ jobs:
         export CROSS_COMPILE=$GITHUB_WORKSPACE/toolchain-64/bin/aarch64-elf-
         export CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/toolchain-32/bin/arm-eabi-
         
-        # Đã sửa sẵn: Gọi chính xác m51_defconfig để nấu
+        # Gọi chính xác m51_defconfig để nấu
         make O=out m51_defconfig
         make -j$(nproc --all) O=out
 
