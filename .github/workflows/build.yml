@@ -7,19 +7,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Cài đặt công cụ hệ thống
+    - name: Cài đặt công cụ hệ thống xịn sò 🛠️
       run: |
         sudo apt-get update
-        sudo apt-get install -y bc build-essential libncurses-dev bison flex libssl-dev libelf-dev clang lld llvm
+        # Cài đặt Clang, LLD và bộ dịch chéo gcc-aarch64/arm chính chủ của Ubuntu
+        sudo apt-get install -y bc build-essential libncurses-dev bison flex libssl-dev libelf-dev clang lld llvm gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
     - name: Tải mã nguồn Kernel chuẩn từ ảnh của ní 🚀
       run: |
         git clone --depth=1 https://github.com/LineageOS/android_kernel_samsung_a71 -b lineage-23.2 kernel-source
-
-    - name: Tải bộ công cụ Proton Clang thần thánh 🛠️
-      run: |
-        # Tải bộ compiler vạn năng chuyên dụng cho Android Kernel
-        git clone --depth=1 https://github.com/kdrag0n/proton-clang toolchain
 
     - name: 🛠️ Bơm mã nguồn KernelSU Non-GKI
       run: |
@@ -27,21 +23,21 @@ jobs:
         curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
         echo "CONFIG_KERNELSU=y" >> arch/arm64/configs/m51_defconfig
 
-    - name: 🏗️ Tiến hành Biên dịch (Compile bằng Clang)
+    - name: 🏗️ Tiến hành Biên dịch (Compile bằng Hệ thống)
       run: |
         cd kernel-source
         export ARCH=arm64
         export SUBARCH=arm64
-        # Gắn Proton Clang vào hệ thống để máy chủ nhận diện
-        export PATH=$GITHUB_WORKSPACE/toolchain/bin:$PATH
         
         make O=out m51_defconfig
         
-        # Ép hệ thống dùng Clang và các trình liên kết chuẩn Linux của Proton
+        # Ép hệ thống dùng Clang và LLD nội bộ, không lo lỗi xung đột thư viện glibc nữa
         make -j$(nproc --all) O=out \
           CC=clang \
+          CLANG_TRIPLE=aarch64-linux-gnu- \
           CROSS_COMPILE=aarch64-linux-gnu- \
           CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+          LD=ld.lld \
           AR=llvm-ar \
           NM=llvm-nm \
           OBJCOPY=llvm-objcopy \
